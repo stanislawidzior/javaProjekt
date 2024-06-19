@@ -37,9 +37,15 @@ public class BooksList {
         return -1;
     }
     public int getAmount(Book book){
-        return this.books.get(book).size();
+        if(!books.containsKey(book)){
+            return 0;
+        }
+        return this.books.get(book).size()-1;
     }
     public int getSize(Book book){
+        if(!books.containsKey(book)){
+            return 0;
+        }
         return this.books.get(book).size();
     }
     public HashMap<Book,Integer> getBooksAmountTable(){
