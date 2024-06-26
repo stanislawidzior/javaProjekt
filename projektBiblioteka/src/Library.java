@@ -44,13 +44,14 @@ public class Library {
             System.out.println(e);
         }
     }
-    public void lendToUser(User user, Book book){
+    public void lendToUser(User user, Book book) throws Exception{
 
         try{
             currentAvailableBooks.removeBook(book);
             user.borrowBook(book);
         }catch(Exception e){
-            System.out.println(e);
+
+            throw new Exception("tutaj");
         }
 
     }
@@ -80,6 +81,21 @@ public class Library {
         }
 
         return bookMap;
+    }
+    public String getCurrentlyAvailableBooksInfoForSearch(){
+        StringBuilder builder = new StringBuilder();
+        //int counter = 1;
+        for(Map.Entry<Book,Integer> book : allBooks.getBooksAmountTable().entrySet()){
+            //builder.append(counter);
+            builder.append(";");
+            builder.append(book.getKey().getTitle());
+            builder.append(" ");
+            builder.append(book.getKey().getAuthor());
+            builder.append(";");
+            builder.append("\n");
+           // counter++;
+        }
+        return builder.toString();
     }
     public String getCurrentlyAvailableBooksInfo(){
         StringBuilder builder = new StringBuilder();
@@ -127,7 +143,7 @@ public class Library {
         }
         private void libraryCreateUser(){
             Scanner s = new Scanner(System.in);
-            System.out.print("---------------");
+            System.out.println("---------------");
             System.out.println("----Wpisz nazwę swojego profilu:----");
             System.out.println("----type in q to exit----");
             String choice;
@@ -161,6 +177,25 @@ public class Library {
                 return;
             }
         }
+        private void printSearchBook() {
+            System.out.println("---------------");
+            System.out.println("----Wpisz czego szukasz----");
+            Scanner s = new Scanner(System.in);
+            String query;
+            query = s.nextLine();
+            String pattern = ";[^;]*" + query + "[^;]*;";
+            Pattern p = Pattern.compile(pattern);
+            // System.out.println(getCurrentlyAvailableBooksInfoForSearch());
+            Matcher matcher = p.matcher(getCurrentlyAvailableBooksInfoForSearch());
+            while (matcher.find()) {
+                System.out.println("Znaleziono: " + matcher.group());
+            }
+
+            System.out.println("----Wcisnij Enter aby kontynuować----");
+            s.nextLine();
+        }
+
+
 private void usersPanel(){
     System.out.println("---------------");
         System.out.println("----Witaj " + currentUser+"----");
@@ -169,14 +204,15 @@ private void usersPanel(){
     System.out.println("2. Zobacz listę swoich ulubionych książek");
     System.out.println("3. Wypozycz książkę");
     System.out.println("4. Oddaj książkę");
-    System.out.println("5. Wyloguj");
+    System.out.println("5. Szukaj książki w bibliotece");
+    System.out.println("6. Wyloguj");
     int choice;
     Scanner s = new Scanner(System.in);
    while(true) {
        try {
            choice = s.nextInt();
            s.nextLine();
-           if (!(choice > 0 && choice < 5)) {
+           if (!(choice > 0 && choice <= 6)) {
                System.err.println("Wybierz jedna z dostepnych opcji");
                continue;
            }
@@ -201,12 +237,60 @@ private void usersPanel(){
 
            usersPanel();
            break;
-
+       case 4:
+           printReturnBooks();
+           usersPanel();
+           break;
+       case 5:
+           printSearchBook();
+           usersPanel();
+           break;
+       case 6:
+           currentUser = "";
+           runLibrary();
    }
 
 
 }
+private void printReturnBooks(){
+    System.out.println(users.getUser(currentUser).getBorrowedBooks().getBooksAmountString());
+    String choice;
+    Scanner s = new Scanner(System.in);
+    System.out.println("---------------");
+    System.out.println ("----Wpisz tytul i autora ksiązki którą chcesz oddać (odziel {;})----");
+    System.out.println("----Wpisz q aby powrocic----");
+    while(true) {
+        choice = s.nextLine();
+        if (choice.equals("q")) {
+            return;
+        }
+        String title = "";
+        String author ="";
+        try {
+             title = choice.split(";", 2)[0];
+            author = choice.split(";", 2)[1];
+        }catch (Exception e){
+            System.err.println("Zastosuj się do wymaganego formatu");
+            continue;
+        }
+        if (users.getUser(currentUser).getBorrowedBooks().containsBook(new Book(title, author))) {
+            try{
+                //users.getUser(currentUser).getBorrowedBooks().debug(new Book(title,author));
+                users.getUser(currentUser).getBorrowedBooks().removeBook(new Book(title,author));
+                currentAvailableBooks.addBook(new Book(title,author));
+            }catch (Exception e){
+                System.err.println("Nie wypożyczasz juz tej książki");
+            }
+            System.out.println("*Oddano książkę*");
+        } else {
+            System.err.println("Nie ma takiej książki");
+        }
+    }
+
+
+}
 private void  printBorrowBooks(){
+    System.out.println("---------------");
     System.out.println("----Dostępne ksiązki----");
     System.out.println(getCurrentlyAvailableBooksInfo());
     System.out.println("----Wpisz cyfre odpowiadającą książce którą chcesz wypożyczyć----");
@@ -221,18 +305,22 @@ private void  printBorrowBooks(){
             if(choice == 0){
                 return ;
             }
-            if(choice > 0 && choice< integerBookMap.size()){
+            if(choice > 0 && choice<= integerBookMap.size()){
                 try{
+                    //System.out.println(integerBookMap);
                 lendToUser(users.getUser(currentUser),integerBookMap.get(choice));
+                    System.out.println("*Udalo się wypożyczyć książkę: " + integerBookMap.get(choice).toString() + "*");
+                    System.out.println("----Wcisnij enter aby kontunuować----");
+                    s.nextLine();
+                    return ;
                 }catch(Exception e){
-                    System.err.println(e);
+                    //System.err.println(e);
+                    System.err.println("Książka nie jest teraz dostępna");
+                    s.nextLine();
+                    continue;
                 }
-                System.out.println("Udalo się wypożyczyć książkę" + integerBookMap.get(choice).toString());
-                System.out.println("Wcisnij enter aby kontynuowac");
-                s.nextLine();
-                return ;
             }else{
-                System.out.println("Niepoprawna wartość");
+                System.err.println("Niepoprawna wartość");
                 s.nextLine();
                 continue;
             }
@@ -245,16 +333,61 @@ private void  printBorrowBooks(){
 }
     private void printUserBooks(){
         System.out.println(users.getUser(currentUser).getBorrowedBooks().getBooksAmountString());
+        String choice;
         Scanner s = new Scanner(System.in);
-        System.out.println("----Wcisnij enter aby powrocic----");
-        s.nextLine();
+        System.out.println("---------------");
+       System.out.println ("----Wpisz tytul i autora ksiązki którą chcesz dodać do ulubionych (odziel {;})----");
+        System.out.println("----Wpisz q aby powrocic----");
+        while(true) {
+            choice = s.nextLine();
+            if (choice.equals("q")) {
+                return;
+            }
+            String title = "";
+            String author ="";
+            try {
+                title = choice.split(";", 2)[0];
+                author = choice.split(";", 2)[1];
+            }catch (Exception e){
+                System.err.println("Zastosuj się do wymaganego formatu");
+                continue;
+            }
+            if (users.getUser(currentUser).getBorrowedBooks().getBooksAmountTable().containsKey(new Book(title, author))) {
+                users.getUser(currentUser).getFavouriteBooks().addBook(new Book(title, author));
+                System.out.println("*Dodano do ulubionych*");
+            } else {
+                System.err.println("Nie ma takiej książki");
+            }
+        }
+
 
     }
     private void printUserFavouriteBooks(){
         System.out.println(users.getUser(currentUser).getFavouriteBooks().getBooksAmountString());
+        String choice;
         Scanner s = new Scanner(System.in);
-        System.out.println("----Wcisnij enter aby powrocic----");
-        s.nextLine();
+        System.out.println("---------------");
+        System.out.println ("----Wpisz tytul i autora ksiązki którą chcesz usunąć z ulubionych (odziel [;])----");
+        System.out.println("----Wpisz q aby powrocic----");
+        while(true) {
+            choice = s.nextLine();
+            if (choice.equals("q")) {
+                return;
+            }
+            String title = choice.split(";", 2)[0];
+            String author = choice.split(";", 2)[1];
+            if (users.getUser(currentUser).getFavouriteBooks().getBooksAmountTable().containsKey(new Book(title, author))) {
+                try{
+                    users.getUser(currentUser).getFavouriteBooks().removeBook(new Book(title, author));
+                }catch(Exception e){
+                    System.err.println("Nie ma takiej książki");
+                    continue;
+                }
+                System.out.println("*Usunięto z ulubionych*");
+            } else {
+                System.err.println("Nie ma takiej książki");
+            }
+        }
     }
 
     public void runLibrary(){

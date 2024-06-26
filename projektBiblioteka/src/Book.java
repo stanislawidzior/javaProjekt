@@ -14,6 +14,14 @@ public class Book {
         this.publisher = publisher;
         this.releaseYear = releaseYear;
     }
+    public Book(String title, String author) {
+        this.title = title;
+        this.author = author;
+        this.pages = 0;
+        this.isbn = " ";
+        this.publisher = " ";
+        this.releaseYear = 0;
+    }
     public String getAuthor() {
         return author;
     }
@@ -74,7 +82,7 @@ public class Book {
         return name.hashCode();
     }
     public boolean isExactly(Book book){
-        return this.title.equals(book.getTitle()) && this.author.equals(book.getAuthor()) && this.isbn.equals(book.getIsbn());
+        return this.title.equals(book.getTitle()) && this.author.equals(book.getAuthor());
     }
     @Override
     public String toString() {

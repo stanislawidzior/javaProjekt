@@ -1,3 +1,5 @@
+import java.util.Map;
+
 //TIP To <b>Run</b> code, press <shortcut actionId="Run"/> or
 // click the <icon src="AllIcons.Actions.Execute"/> icon in the gutter.
 public class Main {
@@ -18,9 +20,13 @@ public class Main {
             lib.addBook(new Book("Wpustyni i w puszczy", "Henryk Sienkiewicz", 100,"22", "Publisher",1999));
             User user = new User("Janek");
             lib.getCurrentlyAvailableBooksInfo();
+
             lib.addUser(user);
             lib.addUser(user);
-            lib.lendToUser(user,book);
+           // Map<Integer,Book> integerBookMap = lib.parseBooks(lib.getCurrentlyAvailableBooksInfo());
+
+            //System.out.print(integerBookMap);
+
             lib.runLibrary();
 
     }

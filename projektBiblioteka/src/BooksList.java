@@ -17,7 +17,12 @@ public class BooksList {
             books.get(book).add(book);
         }
     }
+    public void debug(Book book){
+        System.out.println(books.get(book).size());
+        return;
+    }
     public void removeBook(Book book) throws BookNotFoundException {
+
         if (books.containsKey(book)) {
             if(books.get(book).size() == 1) {
                 books.remove(book);
@@ -28,6 +33,9 @@ public class BooksList {
             }
         }else throw new BookNotFoundException();
     }
+    public boolean containsBook(Book book){
+        return books.containsKey(book);
+    }
     private int getExactBookIndex(Book lookupBook) {
         for(int i = 0; i < books.get(lookupBook).size();i++){
             if(books.get(lookupBook).get(i).isExactly(lookupBook)){
@@ -37,15 +45,13 @@ public class BooksList {
         return -1;
     }
     public int getAmount(Book book){
-        if(!books.containsKey(book)){
+        try {
+            return this.books.get(book).size();
+        }catch (Exception e){
             return 0;
         }
-        return this.books.get(book).size()-1;
     }
     public int getSize(Book book){
-        if(!books.containsKey(book)){
-            return 0;
-        }
         return this.books.get(book).size();
     }
     public HashMap<Book,Integer> getBooksAmountTable(){
@@ -55,11 +61,14 @@ public class BooksList {
         }
         return table;
     }
+    //public boolean containsBook(String title)
     public String getBooksAmountString(){
         HashMap<Book,Integer> table = getBooksAmountTable();
         StringBuilder string = new StringBuilder();
         for(Map.Entry<Book,Integer> book : table.entrySet()){
             string.append(book.getKey().getTitle());
+            string.append("\t");
+            string.append(book.getKey().getAuthor());
             string.append("\tAll: ");
             string.append(book.getValue());
             string.append("\tAvailable: ");
